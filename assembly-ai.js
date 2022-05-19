@@ -42,7 +42,9 @@ class AssemblyAI {
     this.base64 = undefined; // Base64 encoded audio/wav data
     this.vad = undefined; // Voice activity detector
     this.isRecording = false; // Boolean indicating recording status
-    this.worker = new Worker(new URL('./lib/EncoderWorker.js')); // worker script to encode audio stream in wav format
+    const worker_url = new URL('./lib/EncoderWorker.js');
+    console.log("**", worker_url);
+    this.worker = new Worker(worker_url); // worker script to encode audio stream in wav format
     this.worker.onmessage = function(event) { self._processRecording(event.data.blob); }; // worker script callback
     this.callback = undefined;
   }
