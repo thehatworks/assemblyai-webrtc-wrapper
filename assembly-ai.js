@@ -1,65 +1,48 @@
-"use strict";
-
 const API_ENDPOINT = "https://api.assemblyai.com/stream";
 const BUFFER_SIZE = [256, 512, 1024, 2048, 4096, 8192, 16384];
 const PCM_DATA_SAMPLE_RATE = 8000;
 
-// Get wrapper script path
-var scriptPath = '';
-if (document.currentScript) {
-  var hostname = window.location.hostname;
-  var filename = document.currentScript.src.substr(document.currentScript.src.lastIndexOf('/') + 1);
-  var segments = document.currentScript.src.replace('https://','').replace('http://','').split('/');
-  for (var i = 0; i < segments.length; i++) {
-    if (segments[i].includes(hostname) || segments[i].includes(filename)) {
-      continue;
+function start() {
+  // Audio context + .createScriptProcessor shim
+  // for legacy browsers
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  
+  const audioContext = new AudioContext();
+  if (audioContext.createScriptProcessor == null) {
+    audioContext.createScriptProcessor = audioContext.createJavaScriptNode;
+  }
+  
+  let microphone = undefined; // on stream initialization
+  let processor = audioContext.createScriptProcessor(undefined, 2, 2);
+  
+  // Initialize stream
+  const constraints = {
+    audio: {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
     }
-    scriptPath += segments[i] + '/';
-  }
-}
-
-// Audio context + .createScriptProcessor shim
-var audioContext = new AudioContext;
-if (audioContext.createScriptProcessor == null) {
-  audioContext.createScriptProcessor = audioContext.createJavaScriptNode;
-}
-
-var microphone = undefined; // on stream initialization
-var processor = audioContext.createScriptProcessor(undefined, 2, 2);
-
-// Navigator.getUserMedia shim
-navigator.getUserMedia =
-  navigator.getUserMedia ||
-  navigator.webkitGetUserMedia ||
-  navigator.mozGetUserMedia ||
-  navigator.msGetUserMedia;
-
-// Initialize stream
-var constraints = {
-  audio: {
-    echoCancellation: false,
-    noiseSuppression: false,
-    autoGainControl: false,
-  }
+  };
+  navigator.mediaDevices.getUserMedia(constraints,
+    function(stream) {
+      microphone = audioContext.createMediaStreamSource(stream);
+      microphone.connect(processor);
+    },
+    function(error) {
+      window.alert("Could not get audio input");
+  });
 };
-navigator.getUserMedia(constraints,
-  function(stream) {
-    microphone = audioContext.createMediaStreamSource(stream);
-    microphone.connect(processor);
-  },
-  function(error) {
-    window.alert("Could not get audio input");
-});
 
 // Define VAD (voice activity detection) variable
 class AssemblyAI {
   constructor(token) {
+    start();
     var self = this;
     this.token = token; // AssemblyAI API token
     this.base64 = undefined; // Base64 encoded audio/wav data
     this.vad = undefined; // Voice activity detector
     this.isRecording = false; // Boolean indicating recording status
-    this.worker = new Worker(scriptPath+'lib/EncoderWorker.js'); // worker script to encode audio stream in wav format
+    this.worker = new Worker(new URL('./lib/EncoderWorker.js')); // worker script to encode audio stream in wav format
     this.worker.onmessage = function(event) { self._processRecording(event.data.blob); }; // worker script callback
     this.callback = undefined;
   }
@@ -307,7 +290,7 @@ class AssemblyAI {
     }
     return new Blob(byteArrays, { type: contentType });
   }
-}
+};
 
 var VAD = function(options) {
   // Default options
@@ -530,3 +513,5 @@ var VAD = function(options) {
   }
 };
 
+
+module.exports.AssemblyAI = AssemblyAI;

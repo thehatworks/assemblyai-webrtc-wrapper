@@ -1,0 +1,34 @@
+{
+  "name": "assemblyai-webrtc-wrapper",
+  "version": "0.2.0",
+  "description": "Package suitable for bundling adapted from assemblyai official WebRTC wrapper to stream audio from the browser for Speech-to-Text",
+  "main": "assembly-ai.js",
+  "files": [
+    "README.md",
+    "package.json",
+    "assembly-ai.js",
+    "lib/EncoderWorker.js"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thehatworks/assemblyai-webrtc-wrapper.git"
+  },
+  "keywords": [
+    "AssemblyAI",
+    "WebRTC",
+    "streaming",
+    "speech-to-text",
+    "speech",
+    "recognition"
+  ],
+  "author": "Mike Haimes <mike@thehatworks.com>",
+  "contributors": ["Dylan Fox <dylanbfox@github>"],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thehatworks/assemblyai-webrtc-wrapper/issues"
+  },
+  "homepage": "https://github.com/thehatworks/assemblyai-webrtc-wrapper#readme"
+}
